@@ -134,15 +134,15 @@ describe('cloneDeep()', function () {
         }
 
         const a = new A({ x: 11, y: 12, z: () => 'z' }, new B(2), 7);
-        const b = cloneDeep(a, function (val, instancesMap) {
+        const b = cloneDeep(a, function myCustomClone(val, instancesMap) {
             if (val instanceof A) {
                 const res = new A();
                 for (const key in val) {
-                    res[key] = cloneDeep(val[key]);
+                    res[key] = cloneDeep(val[key], myCustomClone, instancesMap);
                 }
                 return res;
             } else {
-                return cloneDeep(val, instancesMap);
+                return cloneDeep(val, myCustomClone, instancesMap);
             }
         });
 
@@ -152,7 +152,8 @@ describe('cloneDeep()', function () {
         b.z = 2;
         expect(a).not.toEqual(b);
         expect(a.z).not.toBe(b.z); // 'Root property of original object not expected to be changed'
-        expect(a.y.x).toBe(b.y.x);
+        expect(a.y).not.toBe(b.y);
+        expect(a.y.x).not.toBe(b.y.x);
     });
 
     it('clone circular reference', function () {
@@ -180,8 +181,8 @@ describe('cloneDeep()', function () {
             enumerable: true
         });
 
-        var obj2 = cloneDeep(obj, function (val, instancesMap) {
-            return cloneDeep(val, instancesMap);
+        var obj2 = cloneDeep(obj, function myCustomClone(val, instancesMap) {
+            return cloneDeep(val, myCustomClone, instancesMap);
         });
         expect(obj2[symbol]).not.toBe(obj[symbol]);
         expect(obj2[symbol]).toEqual(obj[symbol]);

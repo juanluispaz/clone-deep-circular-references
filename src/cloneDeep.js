@@ -29,8 +29,10 @@ function cloneDeep(val, instanceClone, instancesMap) {
 }
 
 function cloneObjectDeep(val, instanceClone, instancesMap) {
-    if (typeof instanceClone === 'function') {
+    if (typeof instanceClone === 'function' && instancesMap.lastValue !== val) {
+        instancesMap.lastValue = val;
         const res = instanceClone(val, instancesMap);
+        instancesMap.lastValue = null;
         instancesMap.set(val, res);
         return res;
     }
