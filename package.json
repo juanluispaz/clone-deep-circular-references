@@ -1,0 +1,70 @@
+{
+  "name": "clone-deep-circular-references",
+  "version": "1.0.0",
+  "description": "Recursively (deep) clone JavaScript objects and handles circular references",
+  "main": "src/cloneDeep.js",
+  "types": "src/cloneDeep.d.ts",
+  "dependencies": {
+    "is-plain-object": "^3.0.0",
+    "kind-of": "^6.0.2",
+    "shallow-clone": "^3.0.1"
+  },
+  "devDependencies": {
+    "coveralls": "^3.0.5",
+    "jest": "^24.8.0"
+  },
+  "scripts": {
+    "test": "jest",
+    "test-coverage": "jest --coverage",
+    "test-coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/juanluispaz/clone-deep-circular-references.git"
+  },
+  "keywords": [
+    "array",
+    "assign",
+    "buffer",
+    "clamped",
+    "clone",
+    "clone-array",
+    "clone-array-deep",
+    "clone-buffer",
+    "clone-date",
+    "clone-deep",
+    "clone-map",
+    "clone-object",
+    "clone-object-deep",
+    "clone-reg-exp",
+    "clone-regex",
+    "clone-regexp",
+    "clone-set",
+    "date",
+    "deep",
+    "extend",
+    "mixin",
+    "mixin-object",
+    "object",
+    "regex",
+    "regexp",
+    "shallow",
+    "symbol"
+  ],
+  "author": {
+    "name": "Juan Luis Paz Rojas",
+    "url": "http://github.com/juanluispaz"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/juanluispaz/clone-deep-circular-references/issues"
+  },
+  "homepage": "https://github.com/juanluispaz/clone-deep-circular-references",
+  "jest": {
+    "testRegex": "/test/.*\\.spec\\.js$",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/"
+    ]
+  }
+}
