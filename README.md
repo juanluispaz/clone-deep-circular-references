@@ -8,7 +8,7 @@
 
 Recursively (deep) clone JavaScript objects and handles circular references.
 
-This is reimplementation of the package [clone-deep](https://www.npmjs.com/package/clone-deep) to allow have circular references.
+This is a reimplementation of the package [clone-deep](https://www.npmjs.com/package/clone-deep) to allow have circular references.
 
 ## Install
 
