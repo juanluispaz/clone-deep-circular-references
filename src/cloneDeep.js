@@ -39,22 +39,26 @@ function cloneObjectDeep(val, instanceClone, instancesMap) {
     if (instanceClone || isPlainObject(val)) {
         const res = Object.create(Object.getPrototypeOf(val));
         instancesMap.set(val, res);
-        for (let key in val) {
-            res[key] = cloneDeep(val[key], instanceClone, instancesMap);
-        }
+        setValue(val, res, Object.getOwnPropertyNames(val), instanceClone, instancesMap);
         if (Object.getOwnPropertySymbols) {
-            const symbols = Object.getOwnPropertySymbols(val);
-            for (var i = 0, length = symbols.length; i < length; i++) {
-                var symbol = symbols[i];
-                if (val.propertyIsEnumerable(symbol)) {
-                    res[symbol] = cloneDeep(val[symbol], instanceClone, instancesMap);
-                }
-            }
+            setValue(val, res, Object.getOwnPropertySymbols(val), instanceClone, instancesMap);
         }
         return res;
     }
     instancesMap.set(val, val);
     return val;
+}
+
+function setValue(val, res, keys, instanceClone, instancesMap) {
+    for (var i = 0, length = keys.length; i < length; i++) {
+        const key = keys[i];
+        const descriptor = Object.getOwnPropertyDescriptor(val, key);
+        const newDescriptor = Object.assign({}, descriptor);
+        if ('value' in newDescriptor) {
+            newDescriptor.value = cloneDeep(val[key], instanceClone, instancesMap);
+        }
+        Object.defineProperty(res, key, newDescriptor);
+    }
 }
 
 function cloneArrayDeep(val, instanceClone, instancesMap) {

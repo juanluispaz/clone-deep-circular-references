@@ -204,4 +204,78 @@ describe('cloneDeep()', function () {
         b.x = 12;
         expect(a).not.toEqual(b);
     });
+
+    it('preserve property accesors', function () {
+        var person = {
+            firstName: 'Jimmy',
+            lastName: 'Smith',
+            get fullName() {
+                return this.firstName + ' ' + this.lastName;
+            },
+            set fullName (name) {
+                var words = name.toString().split(' ');
+                this.firstName = words[0] || '';
+                this.lastName = words[1] || '';
+            }
+        }
+
+        const person2 = cloneDeep(person, true);
+
+        expect(person2).toEqual(person);
+
+        person2.fullName = 'Other Name';
+        expect(person2).not.toEqual(person);
+        expect(person2.firstName).toEqual('Other');
+        expect(person2.lastName).toEqual('Name');
+    });
+
+    it('copy enumerable properties', function () {
+        var obj = {};
+        var symbol = Symbol.for('mySymbol');
+        obj.prop = 10;
+        Object.defineProperty(obj, symbol, {value: 11, enumerable: true, writable: true});
+
+        const obj2 = cloneDeep(obj, true);
+
+        expect(obj2).toEqual(obj);
+        expect(obj2).not.toBe(obj);
+        expect(obj2.prop).toBe(10);
+        expect(obj2[symbol]).toBe(11);
+
+        obj2.prop = 12;
+        obj2[symbol] = 13;
+
+        expect(obj.prop).toBe(10);
+        expect(obj[symbol]).toBe(11);
+        expect(obj2.prop).toBe(12);
+        expect(obj2[symbol]).toBe(13);
+
+        expect(Object.getOwnPropertyDescriptor(obj2, 'prop').enumerable).toBe(true);
+        expect(Object.getOwnPropertyDescriptor(obj2, symbol).enumerable).toBe(true);
+    });
+
+    it('copy non enumerable properties', function () {
+        var obj = {};
+        var symbol = Symbol.for('mySymbol');
+        Object.defineProperty(obj, 'prop', {value: 10, writable: true});
+        Object.defineProperty(obj, symbol, {value: 11, enumerable: false, writable: true});
+
+        const obj2 = cloneDeep(obj, true);
+
+        expect(obj2).toEqual(obj);
+        expect(obj2).not.toBe(obj);
+        expect(obj2.prop).toBe(10);
+        expect(obj2[symbol]).toBe(11);
+
+        obj2.prop = 12;
+        obj2[symbol] = 13;
+
+        expect(obj.prop).toBe(10);
+        expect(obj[symbol]).toBe(11);
+        expect(obj2.prop).toBe(12);
+        expect(obj2[symbol]).toBe(13);
+
+        expect(Object.getOwnPropertyDescriptor(obj2, 'prop').enumerable).toBe(false);
+        expect(Object.getOwnPropertyDescriptor(obj2, symbol).enumerable).toBe(false);
+    });
 });
