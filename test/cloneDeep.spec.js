@@ -187,4 +187,21 @@ describe('cloneDeep()', function () {
         expect(obj2[symbol]).not.toBe(obj[symbol]);
         expect(obj2[symbol]).toEqual(obj[symbol]);
     });
+
+    it('should deep clone instances with instanceClone true', function () {
+        function A(x) {
+            if (!x) {
+                throw new Error('x is missing')
+            }
+            this.x = x;
+        }
+
+        const a = new A({ x: 11});
+        const b = cloneDeep(a, true);
+
+        expect(a).toEqual(b);
+
+        b.x = 12;
+        expect(a).not.toEqual(b);
+    });
 });

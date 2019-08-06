@@ -37,7 +37,7 @@ function cloneObjectDeep(val, instanceClone, instancesMap) {
         return res;
     }
     if (instanceClone || isPlainObject(val)) {
-        const res = new val.constructor();
+        const res = Object.create(Object.getPrototypeOf(val));
         instancesMap.set(val, res);
         for (let key in val) {
             res[key] = cloneDeep(val[key], instanceClone, instancesMap);
