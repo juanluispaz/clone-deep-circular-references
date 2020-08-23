@@ -1,6 +1,6 @@
 {
   "name": "clone-deep-circular-references",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Shallow and recursively (deep) clone JavaScript objects that handles circular references",
   "main": "src/cloneDeep.js",
   "types": "src/cloneDeep.d.ts",
