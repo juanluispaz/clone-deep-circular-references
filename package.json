@@ -1,17 +1,16 @@
 {
   "name": "clone-deep-circular-references",
   "version": "1.0.0",
-  "description": "Recursively (deep) clone JavaScript objects and handles circular references",
+  "description": "Shallow and recursively (deep) clone JavaScript objects that handles circular references",
   "main": "src/cloneDeep.js",
   "types": "src/cloneDeep.d.ts",
   "dependencies": {
-    "is-plain-object": "^3.0.0",
-    "kind-of": "^6.0.2",
-    "shallow-clone": "^3.0.1"
+    "is-plain-object": "^4.1.1",
+    "kind-of": "^6.0.2"
   },
   "devDependencies": {
-    "coveralls": "^3.0.5",
-    "jest": "^24.8.0"
+    "coveralls": "^3.1.0",
+    "jest": "^26.4.2"
   },
   "scripts": {
     "test": "jest",

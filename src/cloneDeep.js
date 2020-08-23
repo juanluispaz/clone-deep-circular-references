@@ -1,8 +1,7 @@
 'use strict';
 
-const clone = require('shallow-clone');
-const typeOf = require('kind-of');
-const isPlainObject = require('is-plain-object');
+var typeOf = require('kind-of');
+var isPlainObject = require('is-plain-object');
 
 function cloneDeep(val, instanceClone, instancesMap) {
     if (instancesMap) {
@@ -13,7 +12,8 @@ function cloneDeep(val, instanceClone, instancesMap) {
     } else {
         instancesMap = new Map();
     }
-    switch (typeOf(val)) {
+    var type = typeOf(val)
+    switch (type) {
         case 'object':
             return cloneObjectDeep(val, instanceClone, instancesMap);
         case 'array':
@@ -23,37 +23,47 @@ function cloneDeep(val, instanceClone, instancesMap) {
         case 'set':
             return cloneSetDeep(val, instanceClone, instancesMap);
         default: {
-            return clone(val);
+            return cloneShallow(val, false, type);
         }
     }
 }
 
 function cloneObjectDeep(val, instanceClone, instancesMap) {
-    if (typeof instanceClone === 'function' && instancesMap.lastValue !== val) {
-        instancesMap.lastValue = val;
-        const res = instanceClone(val, instancesMap);
-        instancesMap.lastValue = null;
+    if (typeof instanceClone === 'function' && instanceClone.lastValue !== val) {
+        instanceClone.lastValue = val;
+        var res = instanceClone(val, instancesMap);
+        instanceClone.lastValue = null;
         instancesMap.set(val, res);
         return res;
     }
     if (instanceClone || isPlainObject(val)) {
-        const res = Object.create(Object.getPrototypeOf(val));
+        var res = Object.create(Object.getPrototypeOf(val));
         instancesMap.set(val, res);
-        setValue(val, res, Object.getOwnPropertyNames(val), instanceClone, instancesMap);
-        if (Object.getOwnPropertySymbols) {
-            setValue(val, res, Object.getOwnPropertySymbols(val), instanceClone, instancesMap);
-        }
+        copyPropsDeep(res, val, instanceClone, instancesMap);
         return res;
     }
     instancesMap.set(val, val);
     return val;
 }
 
-function setValue(val, res, keys, instanceClone, instancesMap) {
+function copyPropsDeep(res, val, instanceClone, instancesMap, filter) {
+    var ownProperties = Object.getOwnPropertyNames(val);
+    if (filter) {
+        ownProperties = ownProperties.filter(function (prop) {
+            return !(prop in res);
+        });
+    }
+    setValueCloneDeep(val, res, ownProperties, instanceClone, instancesMap);
+    if (Object.getOwnPropertySymbols) {
+        setValueCloneDeep(val, res, Object.getOwnPropertySymbols(val), instanceClone, instancesMap);
+    }
+}
+
+function setValueCloneDeep(val, res, keys, instanceClone, instancesMap) {
     for (var i = 0, length = keys.length; i < length; i++) {
-        const key = keys[i];
-        const descriptor = Object.getOwnPropertyDescriptor(val, key);
-        const newDescriptor = Object.assign({}, descriptor);
+        var key = keys[i];
+        var descriptor = Object.getOwnPropertyDescriptor(val, key);
+        var newDescriptor = Object.assign({}, descriptor);
         if ('value' in newDescriptor) {
             newDescriptor.value = cloneDeep(val[key], instanceClone, instancesMap);
         }
@@ -62,31 +72,130 @@ function setValue(val, res, keys, instanceClone, instancesMap) {
 }
 
 function cloneArrayDeep(val, instanceClone, instancesMap) {
-    const res = new val.constructor(val.length);
+    var res = new val.constructor(val.length);
     instancesMap.set(val, res);
-    for (let i = 0; i < val.length; i++) {
+    for (var i = 0; i < val.length; i++) {
         res[i] = cloneDeep(val[i], instanceClone, instancesMap);
     }
+    copyPropsDeep(res, val, instanceClone, instancesMap, true);
     return res;
 }
 
 function cloneMapDeep(val, instanceClone, instancesMap) {
-    const res = new val.constructor();
+    var res = new val.constructor();
     instancesMap.set(val, res);
-    val.forEach(function(value, key) {
+    val.forEach(function (value, key) {
         res.set(key, cloneDeep(value, instanceClone, instancesMap));
     });
+    copyPropsDeep(res, val, instanceClone, instancesMap);
     return res;
 }
 
 function cloneSetDeep(val, instanceClone, instancesMap) {
-    const res = new val.constructor();
+    var res = new val.constructor();
     instancesMap.set(val, res);
-    val.forEach(function(value) {
+    val.forEach(function (value) {
         res.add(cloneDeep(value, instanceClone, instancesMap));
     });
+    copyPropsDeep(res, val, instanceClone, instancesMap);
     return res;
 }
 
+// Shallow clone
+
+function cloneShallow(val, instanceClone, type) {
+    if (!type) {
+        type = typeOf(val);
+    }
+    switch (type) {
+        case 'array':
+            return cloneArrayShallow(val);
+        case 'object':
+            return cloneObjectShallow(val, instanceClone);
+        case 'date': {
+            var res = new val.constructor(Number(val));
+            copyPropsShallow(res, val);
+            return res;
+        }
+        case 'map': {
+            var res = new Map(val);
+            copyPropsShallow(res, val);
+            return res;
+        }
+        case 'set': {
+            var res = new Set(val);
+            copyPropsShallow(res, val);
+            return res;
+        }
+        case 'regexp':
+            return cloneRegExpShallow(val);
+        case 'error':
+            return cloneObjectShallow(val, true);
+        default: {
+            return val;
+        }
+    }
+}
+
+function cloneObjectShallow(val, instanceClone) {
+    if (typeof instanceClone === 'function' && instanceClone.lastValue !== val) {
+        instanceClone.lastValue = val;
+        var res = instanceClone(val);
+        instanceClone.lastValue = null;
+        return res;
+    }
+    if (instanceClone || isPlainObject(val)) {
+        var res = Object.create(Object.getPrototypeOf(val));
+        copyPropsShallow(res, val);
+        return res;
+    }
+    return val;
+}
+
+function copyPropsShallow(res, val, filter) {
+    var ownProperties = Object.getOwnPropertyNames(val);
+    if (filter) {
+        ownProperties = ownProperties.filter(function (prop) {
+            return !(prop in res);
+        });
+    }
+    setValueCloneShallow(val, res, Object.getOwnPropertyNames(val));
+    if (Object.getOwnPropertySymbols) {
+        setValueCloneShallow(val, res, Object.getOwnPropertySymbols(val));
+    }
+}
+
+function setValueCloneShallow(val, res, keys) {
+    for (var i = 0, length = keys.length; i < length; i++) {
+        var key = keys[i];
+        var descriptor = Object.getOwnPropertyDescriptor(val, key);
+        var newDescriptor = Object.assign({}, descriptor);
+        if ('value' in newDescriptor) {
+            newDescriptor.value = val[key];
+        }
+        Object.defineProperty(res, key, newDescriptor);
+    }
+}
+
+function cloneArrayShallow(val) {
+    var res = new val.constructor(val.length);
+    for (var i = 0; i < val.length; i++) {
+        res[i] = val[i];
+    }
+    copyPropsShallow(res, val, true);
+    return res;
+}
+
+function cloneRegExpShallow(val) {
+    var res = new val.constructor(val.source, val.flags || '');
+    res.lastIndex = val.lastIndex;
+    copyPropsShallow(res, val, true);
+    return res;
+}
+
+// Exports
+
 Object.defineProperty(exports, "__esModule", { value: true });
 module.exports.default = cloneDeep;
+module.exports.cloneDeep = cloneDeep;
+module.exports.cloneShallow = cloneShallow;
